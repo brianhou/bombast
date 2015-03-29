@@ -3,7 +3,7 @@ import bombast
 
 setup(
     name='bombast',
-    version='v0.1.1',
+    version='v0.1.2',
     description='An obfuscator for Python source code that manipulates the AST.',
     url='https://github.com/brianhou/bombast',
     author='Brian Hou',
