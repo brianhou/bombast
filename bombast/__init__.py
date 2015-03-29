@@ -1,21 +1,24 @@
 import argparse
 import ast
 import astunparse
+import builtins
 import sys
 
 from bombast.transform import *
 
 class Preprocess(ast.NodeVisitor):
-    hardcoded = ['f_locals', 'add']
-    ignores = dir(__builtins__) + hardcoded
+    hardcoded = {'f_locals', 'add'}
+    ignores = set(dir(builtins)) | hardcoded
 
     def __init__(self):
         ast.NodeTransformer.__init__(self)
         self.mapping = {}
-        self.imports = []
+        self.imports = set()
 
     def rename(self, input):
-        if input in self.ignores or input in self.imports:
+        if input in self.ignores:
+            return
+        elif input in self.imports:
             return
         new_name = random.randident(4, 10)
         while new_name in self.mapping.values():
@@ -41,7 +44,7 @@ class Preprocess(ast.NodeVisitor):
 
     def visit_Import(self, node):
         # only supports imports of the form 'import <module>'
-        self.imports.append(node.names[0].name)
+        self.imports.add(node.names[0].name)
 
 class Bombast(ast.NodeTransformer):
     def __init__(self, preprocess):
@@ -87,15 +90,20 @@ class Bombast(ast.NodeTransformer):
     def visit_arguments(self, node):
         args = [self.visit(arg) for arg in node.args]
         kwonlyargs = [self.visit(arg) for arg in node.kwonlyargs]
-        vararg = self.rename(node.vararg)
-        kwarg = self.rename(node.kwarg)
         defaults, kw_defaults = node.defaults, node.kw_defaults
         if VERSION.minor < 4:
+            vararg = self.rename(node.vararg)
+            kwarg = self.rename(node.kwarg)
             return arguments(args, vararg, node.varargannotation,
                              kwonlyargs, kwarg, node.kwargannotation,
                              defaults, kw_defaults)
         else:
-            return arguments(args, vararg, kwonlyargs, kwarg, defaults, kw_defaults)
+            vararg = kwarg = None
+            if node.vararg is not None:
+                vararg = arg(arg=self.rename(node.vararg.arg), annotation=node.vararg.annotation)
+            if node.kwarg is not None:
+                kwarg = arg(arg=self.rename(node.kwarg.arg), annotation=node.kwarg.annotation)
+            return arguments(args, vararg, kwonlyargs, kw_defaults, kwarg, defaults)
 
     def visit_FunctionDef(self, node):
         name = self.rename(node.name)
