@@ -7,7 +7,7 @@ import sys
 from bombast.transform import *
 
 class Preprocess(ast.NodeVisitor):
-    hardcoded = {'f_locals', 'add', 'pop'}
+    hardcoded = {'f_locals', 'add', 'pop', 'file'}
     ignores = set(dir(builtins)) | hardcoded
 
     def __init__(self):
