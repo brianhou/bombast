@@ -3,7 +3,7 @@ import ast
 import astunparse
 import sys
 
-from transform import *
+from bombast.transform import *
 
 class Preprocess(ast.NodeVisitor):
     hardcoded = ['f_locals', 'add']
@@ -119,7 +119,7 @@ class Bombast(ast.NodeTransformer):
                         node.keywords, node.starargs, node.kwargs,
                         body, decorator_list)
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Obfuscate Python source code.')
     parser.add_argument('pyfile', help='input')
     parser.add_argument('--iters', help='number of iterations', type=int, default=1)
@@ -133,8 +133,11 @@ if __name__ == '__main__':
     preprocess = Preprocess()
     preprocess.visit(root)
 
-    Bombast = Bombast(preprocess)
+    bombast = Bombast(preprocess)
     for _ in range(args.iters):
-        root = Bombast.visit(root)
+        root = bombast.visit(root)
     ast.fix_missing_locations(root)
     print(astunparse.unparse(root))
+
+if __name__ == '__main__':
+    main()

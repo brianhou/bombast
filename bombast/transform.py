@@ -13,7 +13,7 @@ from ast import With, withitem
 from ast import FunctionDef, Lambda, arguments, arg, Return, Yield, Global, Nonlocal
 from ast import ClassDef
 
-from utils import *
+from bombast.utils import *
 
 class Transformation(object):
     def __init__(self, *fns):
