@@ -9,7 +9,7 @@ from ast import ListComp, SetComp, DictComp, GeneratorExp, comprehension
 from ast import Assign, AugAssign, Raise, Assert, Delete, Pass
 from ast import Import, ImportFrom, alias
 from ast import If, For, While, Break, Continue, ExceptHandler
-from ast import With, withitem
+from ast import With # withitem
 from ast import FunctionDef, Lambda, arguments, arg, Return, Yield, Global, Nonlocal
 from ast import ClassDef
 
