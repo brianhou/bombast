@@ -8,6 +8,7 @@ setup(
     url='https://github.com/brianhou/bombast',
     author='Brian Hou',
     packages=['bombast'],
+    install_requires=['astunparse'],
     entry_points={
         'console_scripts': [
             'bombast=bombast.__init__:main',
