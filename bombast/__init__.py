@@ -131,7 +131,10 @@ def main():
     parser = argparse.ArgumentParser(description='Obfuscate Python source code.')
     parser.add_argument('pyfile', help='input')
     parser.add_argument('--iters', help='number of iterations', type=int, default=1)
+    parser.add_argument('--seed', help='random seed', type=int, default=0)
     args = parser.parse_args()
+
+    random.seed(args.seed)
     if args.pyfile == '-':
         root = ast.parse(sys.stdin.read())
     else:
