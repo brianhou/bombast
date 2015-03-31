@@ -133,7 +133,7 @@ def main():
                         default=sys.stdin,
                         help='input')
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'),
-                        default=open('obfuscated.py', 'w'),
+                        default='obfuscated.py',
                         help='output [default: obfuscated.py]')
     parser.add_argument('--seed', type=int, default=0,
                         help='random seed [default: 0]')
