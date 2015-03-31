@@ -129,16 +129,22 @@ class Bombast(ast.NodeTransformer):
 
 def main():
     parser = argparse.ArgumentParser(description='Obfuscate Python source code.')
-    parser.add_argument('pyfile', help='input')
-    parser.add_argument('--iters', help='number of iterations', type=int, default=1)
-    parser.add_argument('--seed', help='random seed', type=int, default=0)
+    parser.add_argument('infile', type=argparse.FileType('rb'),
+                        default=sys.stdin,
+                        help='input')
+    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'),
+                        default=open('obfuscated.py', 'w'),
+                        help='output [default: obfuscated.py]')
+    parser.add_argument('--seed', type=int, default=0,
+                        help='random seed [default: 0]')
+    parser.add_argument('--iters', type=int, default=1,
+                        help='number of iterations [default: 1]')
+    parser.add_argument('--show-translations', action='store_true',
+                        help='print translations to stdout')
     args = parser.parse_args()
 
     random.seed(args.seed)
-    if args.pyfile == '-':
-        root = ast.parse(sys.stdin.read())
-    else:
-        root = ast.parse(open(args.pyfile, 'rb').read())
+    root = ast.parse(args.infile.read())
 
     # Choose renamings
     preprocess = Preprocess()
@@ -148,7 +154,11 @@ def main():
     for _ in range(args.iters):
         root = bombast.visit(root)
     ast.fix_missing_locations(root)
-    print(astunparse.unparse(root))
+
+    print(astunparse.unparse(root), file=args.outfile)
+    if args.show_translations:
+        for original, obfuscated in preprocess.mapping.items():
+            print(original, '=', obfuscated)
 
 if __name__ == '__main__':
     main()
