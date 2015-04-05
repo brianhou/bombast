@@ -165,7 +165,10 @@ def main():
     bombast = Bombast(preprocess)
     for _ in range(args.iters):
         root = bombast.visit(root)
-    ast.fix_missing_locations(root)
+
+    # Postprocessing
+    root.body.sort(key=lambda x: not isinstance(x, ast.Import)) # move imports
+    ast.fix_missing_locations(root) # fix AST
 
     print(astunparse.unparse(root), file=args.outfile)
     if args.show_translations:
