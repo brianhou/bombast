@@ -1,3 +1,4 @@
+import json
 import pprint
 import random
 import string as _string
@@ -19,5 +20,19 @@ random.randident = randident
 
 def debug(*args):
     print(*args, file=sys.stderr)
+
+def load_config(path, default='bombast.config'):
+    if path is None:
+        path = default
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except IOError as e:
+        if path != default:
+            raise
+    except ValueError as e:
+        print('Error:', path, 'is an invalid configuration file', file=sys.stderr)
+        exit(1)
+    return {}
 
 VERSION = sys.version_info

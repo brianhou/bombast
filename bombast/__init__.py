@@ -7,8 +7,7 @@ import sys
 from bombast.transform import *
 
 class Preprocess(ast.NodeVisitor):
-    hardcoded = {'f_locals', 'add', 'pop', 'file'}
-    ignores = set(dir(builtins)) | hardcoded
+    ignores = set(dir(builtins))
 
     def __init__(self):
         ast.NodeTransformer.__init__(self)
@@ -127,6 +126,16 @@ class Bombast(ast.NodeTransformer):
                         node.keywords, node.starargs, node.kwargs,
                         body, decorator_list)
 
+def configure(path):
+    options = load_config(path)
+    for option, value in options.items():
+        if option == 'ignore_names':
+            user_ignores = set(value)
+            Preprocess.ignores |= user_ignores
+        else:
+            print('Warning: option "{}" is unused.'.format(option),
+                  file=sys.stderr)
+
 def main():
     parser = argparse.ArgumentParser(description='Obfuscate Python source code.')
     parser.add_argument('infile', type=argparse.FileType('rb'),
@@ -139,9 +148,12 @@ def main():
                         help='random seed [default: 0]')
     parser.add_argument('--iters', type=int, default=1,
                         help='number of iterations [default: 1]')
+    parser.add_argument('--config', type=str,
+                        help='configuration file [default: bombast.config]')
     parser.add_argument('--show-translations', action='store_true',
                         help='print translations to stdout')
     args = parser.parse_args()
+    configure(args.config)
 
     random.seed(args.seed)
     root = ast.parse(args.infile.read())
