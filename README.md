@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/brianhou/bombast.svg)](https://travis-ci.org/brianhou/bombast)
+
 bombast
 =======
 
