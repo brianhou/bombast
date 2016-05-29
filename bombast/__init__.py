@@ -128,8 +128,7 @@ class Bombast(ast.NodeTransformer):
                             body, decorator_list)
         else:
             return ClassDef(name, bases,
-                            node.keywords, node.kwargs,
-                            body, decorator_list)
+                            node.keywords, body, decorator_list)
 
 def configure(path):
     options = load_config(path)
