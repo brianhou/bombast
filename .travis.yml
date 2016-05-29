@@ -11,3 +11,6 @@ install:
 
 script:
   - ./tests/test.sh
+
+notifications:
+  email: false
