@@ -122,9 +122,14 @@ class Bombast(ast.NodeTransformer):
         bases = [self.visit(b) for b in node.bases]
         body = [self.visit(b) for b in node.body]
         decorator_list = [self.visit(d) for d in node.decorator_list]
-        return ClassDef(name, bases,
-                        node.keywords, node.starargs, node.kwargs,
-                        body, decorator_list)
+        if VERSION.minor < 5:
+            return ClassDef(name, bases,
+                            node.keywords, node.starargs, node.kwargs,
+                            body, decorator_list)
+        else:
+            return ClassDef(name, bases,
+                            node.keywords, node.kwargs,
+                            body, decorator_list)
 
 def configure(path):
     options = load_config(path)
