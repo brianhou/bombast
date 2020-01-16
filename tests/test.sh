@@ -8,5 +8,4 @@ for f in tests/*.py; do
     python3 $f > $expected
     python3 $out > $actual
     diff $expected $actual
-    rm obfuscated.py
 done
