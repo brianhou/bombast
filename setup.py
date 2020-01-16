@@ -10,7 +10,7 @@ setup(
     install_requires=['astunparse'],
     entry_points={
         'console_scripts': [
-            'bombast=bombast.__init__:main',
+            'bombast=bombast.__main__:main',
         ],
     }
 )
