@@ -6,3 +6,4 @@ env
 35
 
 *.egg-info/
+__pycache__
