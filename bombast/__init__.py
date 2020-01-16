@@ -6,6 +6,11 @@ import sys
 
 from bombast.transform import *
 
+def assigned_name(alias_node):
+    name = alias_node.asname if alias_node.asname is not None else alias_node.name
+    unqualified = name.split(".")[-1]
+    return unqualified
+
 class Preprocess(ast.NodeVisitor):
     ignores = set(dir(builtins))
 
@@ -41,9 +46,18 @@ class Preprocess(ast.NodeVisitor):
         for line in node.body:
             self.visit(line)
 
+    def rename_alias(self, alias_node):
+        name = assigned_name(alias_node)
+        self.imports.add(name)
+        self.rename(name)
+
     def visit_Import(self, node):
-        # only supports imports of the form 'import <module>'
-        self.imports.add(node.names[0].name)
+        for name in node.names:
+            self.rename_alias(name)
+
+    def visit_ImportFrom(self, node):
+        for name in node.names:
+            self.rename_alias(name)
 
 class Bombast(ast.NodeTransformer):
     def __init__(self, preprocess):
@@ -69,10 +83,7 @@ class Bombast(ast.NodeTransformer):
         return Name(id=self.rename(node.id), ctx=node.ctx)
 
     def visit_Attribute(self, node):
-        if isinstance(node.value, Name) and node.value.id in self.imports:
-            attr = node.attr
-        else:
-            attr = self.rename(node.attr)
+        attr = self.rename(node.attr)
         return Attribute(value=self.visit(node.value), attr=attr, ctx=node.ctx)
 
     def visit_ExceptHandler(self, node):
@@ -129,6 +140,16 @@ class Bombast(ast.NodeTransformer):
         else:
             return ClassDef(name, bases,
                             node.keywords, body, decorator_list)
+
+    def rename_alias(self, alias_node):
+        return alias(alias_node.name, self.rename(assigned_name(alias_node)))
+
+    def visit_Import(self, node):
+        return Import(names=[self.rename_alias(name) for name in node.names])
+
+    def visit_ImportFrom(self, node):
+        return ImportFrom(module=node.module, names=[self.rename_alias(name) for name in node.names], level=node.level)
+
 
 def configure(path):
     options = load_config(path)
