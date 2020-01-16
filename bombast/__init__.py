@@ -80,8 +80,18 @@ class Bombast(ast.NodeTransformer):
     def visit_Name(self, node):
         return Name(id=self.rename(node.id), ctx=node.ctx)
 
+    def is_import(self, node):
+        if isinstance(node, Attribute):
+            return self.is_import(node.value)
+        if isinstance(node, Name):
+            return node.id in self.imports
+        return False # does not cover other cases
+
     def visit_Attribute(self, node):
-        attr = self.rename(node.attr)
+        if self.is_import(node):
+            attr = node.attr
+        else:
+            attr = self.rename(node.attr)
         return Attribute(value=self.visit(node.value), attr=attr, ctx=node.ctx)
 
     def visit_ExceptHandler(self, node):
