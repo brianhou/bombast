@@ -197,11 +197,11 @@ def main():
     root = ast.parse(args.infile.read())
 
     # Choose renamings
-    preprocess = Preprocess()
-    preprocess.visit(root)
-
-    bombast = Bombast(preprocess)
     for _ in range(args.iters):
+        preprocess = Preprocess()
+        preprocess.visit(root)
+
+        bombast = Bombast(preprocess)
         root = bombast.visit(root)
 
     # Postprocessing
