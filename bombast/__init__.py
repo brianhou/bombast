@@ -146,13 +146,14 @@ class Bombast(ast.NodeTransformer):
         bases = [self.visit(b) for b in node.bases]
         body = [self.visit(b) for b in node.body]
         decorator_list = [self.visit(d) for d in node.decorator_list]
+        keywords = [self.visit(keyword) for keyword in node.keywords]
         if VERSION[:2] < (3, 5):
             return ClassDef(name, bases,
-                            node.keywords, node.starargs, node.kwargs,
+                            keywords, node.starargs, node.kwargs,
                             body, decorator_list)
         else:
             return ClassDef(name, bases,
-                            node.keywords, body, decorator_list)
+                            keywords, body, decorator_list)
 
     def rename_alias(self, alias_node):
         return alias(alias_node.name, self.rename(assigned_name(alias_node)))
