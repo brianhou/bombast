@@ -22,8 +22,6 @@ class Preprocess(ast.NodeVisitor):
     def rename(self, input):
         if input in self.ignores:
             return
-        elif input in self.imports:
-            return
         new_name = random.randident(4, 10)
         while new_name in self.mapping.values():
             new_name = random.randident(4, 10)
