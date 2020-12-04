@@ -1,4 +1,4 @@
-name: Test bombast
+name: Tests
 
 on:
   push:
