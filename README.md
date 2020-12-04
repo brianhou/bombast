@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/brianhou/bombast.svg)](https://travis-ci.org/brianhou/bombast)
+![Build Status](https://github.com/brianhou/bombast/workflows/tests/badge.svg)
 
 bombast
 =======
