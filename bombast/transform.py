@@ -1,10 +1,10 @@
-from ast import Num, Str, List, Tuple, Set, Dict # NameConstant
+from ast import Constant
 from ast import Name, Load, Store, Del, Starred
 from ast import Expr, UnaryOp, UAdd, USub, Not, BinOp
 from ast import Add, Sub, Mult, Div, FloorDiv, Mod, Pow
 from ast import BoolOp, And, Or, Compare, Eq, NotEq, Lt, LtE, Gt, GtE, Is, IsNot, In, NotIn
 from ast import Call, keyword, IfExp, Attribute
-from ast import Subscript, Index, Slice
+from ast import Subscript, Slice
 from ast import ListComp, SetComp, DictComp, GeneratorExp, comprehension
 from ast import Assign, AugAssign, Raise, Assert, Delete, Pass
 from ast import Import, ImportFrom, alias
@@ -60,7 +60,7 @@ class StrBombast(PrimitiveBombast):
 
     def one_Ordinal(node): # 'a' -> chr(97)
         return Call(func=Name(id='chr', ctx=Load()),
-                    args=[Num(ord(node.s), **DEFAULT_CONSTANT_KWARGS)], keywords=[], starargs=None, kwargs=None)
+                    args=[Constant(value=ord(node.s), **DEFAULT_CONSTANT_KWARGS)], keywords=[], starargs=None, kwargs=None)
     def one_Identity(node): # 'a' -> 'a'
         return node
     one = Transformation(one_Ordinal, one_Identity)
@@ -69,8 +69,8 @@ class StrBombast(PrimitiveBombast):
         s = node.s
         i = random.randrange(len(s))
         return BinOp(
-            left=Str(s=s[:i], **DEFAULT_CONSTANT_KWARGS),
-            right=Str(s=s[i:], **DEFAULT_CONSTANT_KWARGS),
+            left=Constant(value=s[:i], **DEFAULT_CONSTANT_KWARGS),
+            right=Constant(value=s[i:], **DEFAULT_CONSTANT_KWARGS),
             op=Add()
         )
     many = Transformation(many_Split)
@@ -89,7 +89,7 @@ class NumBombast(PrimitiveBombast):
     def zero_Multiplier(node): # 0 -> int(n * 0)
         return Call(
             func=Name(id='int', ctx=Load()),
-            args=[BinOp(left=Num(n=random.random(), **DEFAULT_CONSTANT_KWARGS), right=Num(n=0, **DEFAULT_CONSTANT_KWARGS), op=Mult())],
+            args=[BinOp(left=Constant(value=random.random(), **DEFAULT_CONSTANT_KWARGS), right=Constant(value=0, **DEFAULT_CONSTANT_KWARGS), op=Mult())],
             keywords=[], starargs=None, kwargs=None
         )
     def zero_Identity(node):
@@ -99,8 +99,8 @@ class NumBombast(PrimitiveBombast):
     def int_Split(node, range=100): # n -> (n-s) + (s)
         s = random.randint(-range, range)
         return BinOp(
-            left=Num(n=node.n-s, **DEFAULT_CONSTANT_KWARGS),
-            right=Num(n=s, **DEFAULT_CONSTANT_KWARGS),
+            left=Constant(value=node.n-s, **DEFAULT_CONSTANT_KWARGS),
+            right=Constant(value=s, **DEFAULT_CONSTANT_KWARGS),
             op=Add()
         )
     int = Transformation(int_Split)
@@ -108,8 +108,8 @@ class NumBombast(PrimitiveBombast):
     def float_Split(node): # n -> (n-s) + (s)
         s = random.random()
         return BinOp(
-            left=Num(n=node.n-s, **DEFAULT_CONSTANT_KWARGS),
-            right=Num(n=s, **DEFAULT_CONSTANT_KWARGS),
+            left=Constant(value=node.n-s, **DEFAULT_CONSTANT_KWARGS),
+            right=Constant(value=s, **DEFAULT_CONSTANT_KWARGS),
             op=Add()
         )
     float = Transformation(float_Split)
@@ -122,13 +122,13 @@ class ImportBombast(RenameBombast):
             targets=[Name(id=n.names[0].name, ctx=Store())],
             value=Call(func=Name(id='__import__', ctx=Load()),
                        args=[
-                           Str(s=n.names[0].name, **DEFAULT_CONSTANT_KWARGS),
+                           Constant(value=n.names[0].name, **DEFAULT_CONSTANT_KWARGS),
                            Call(func=Name(id='globals', ctx=Load()),
                                 args=[], keywords=[], starargs=None, kwargs=None),
                            Call(func=Name(id='locals', ctx=Load()),
                                 args=[], keywords=[], starargs=None, kwargs=None),
                            List(elts=[], ctx=Load()),
-                           Num(n=0, **DEFAULT_CONSTANT_KWARGS)
+                           Constant(value=0, **DEFAULT_CONSTANT_KWARGS)
                        ],
                        keywords=[], starargs=None, kwargs=None))
         )

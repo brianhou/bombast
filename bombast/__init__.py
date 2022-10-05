@@ -55,15 +55,16 @@ class Bombast(ast.NodeTransformer):
         return self.mapping.get(input, input)
 
     def visit_Expr(self, node):
-        if isinstance(node.value, Str): # docstring
-            return Expr(Str(s=random.randident(20, 30), **DEFAULT_CONSTANT_KWARGS))
+        if isinstance(node.value, Constant) and isinstance(node.value.value, str): # docstring
+            return Expr(Constant(value=random.randident(20, 30), **DEFAULT_CONSTANT_KWARGS))
         return Expr(self.visit(node.value))
 
-    def visit_Num(self, node):
-        return NumBombast(node).transform()
-
-    def visit_Str(self, node):
-        return StrBombast(node).transform()
+    def visit_Constant(self, node):
+        if isinstance(node.value, int) or isinstance(node.value, float):
+            return NumBombast(node).transform()
+        elif isinstance(node.value, str):
+            return StrBombast(node).transform()
+        return Constant(value=node.value)
 
     def visit_Name(self, node):
         return Name(id=self.rename(node.id), ctx=node.ctx)
