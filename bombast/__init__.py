@@ -135,6 +135,27 @@ class Bombast(ast.NodeTransformer):
             return ClassDef(name, bases,
                             node.keywords, body, decorator_list)
 
+    def visit_JoinedStr(self, node):
+        new_node = None
+        for value in node.values:
+            if type(value) == Constant:
+                value = self.visit(value)
+            elif type(value) == FormattedValue:
+                value.value = self.visit(value.value)
+                value = JoinedStr(values=[value])
+            else:
+                raise RuntimeError('Invalid node in JoinedStr')
+
+            if new_node is None:
+                new_node = value
+            else:
+                new_node = BinOp(
+                    left=new_node,
+                    right=value,
+                    op=Add()
+                )
+        return new_node
+
 def configure(path):
     options = load_config(path)
     for option, value in options.items():
