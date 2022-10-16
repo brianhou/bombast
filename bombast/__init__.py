@@ -1,3 +1,10 @@
+"""bombast obfuscates Python 3 source code by manipulating the AST.
+
+bombast replaces names with a random new identifier, then repeatedly applies
+various transformations to the AST.
+"""
+
+
 import argparse
 import ast
 import builtins
@@ -9,10 +16,16 @@ from bombast import transform, utils
 
 
 class Preprocess(ast.NodeVisitor):
+    """A NodeVisitor that assigns all identifiers in the AST new names.
+
+    Names in ``Preprocess.ignores`` are untouched. By default, this contains all
+    builtins; define ignore_names in bombast.config to customize further.
+    """
+
     ignores = set(dir(builtins))
 
     def __init__(self):
-        ast.NodeTransformer.__init__(self)
+        super().__init__()
         self.mapping = {}
         self.imports = set()
 
@@ -49,6 +62,8 @@ class Preprocess(ast.NodeVisitor):
 
 
 class Bombast(ast.NodeTransformer):
+    """A NodeTransformer that applies ``Transformations`` to the AST."""
+
     def __init__(self, preprocess):
         super().__init__()
         self.mapping = preprocess.mapping
@@ -163,7 +178,7 @@ def configure(path):
             user_ignores = set(value)
             Preprocess.ignores |= user_ignores
         else:
-            print('Warning: option "{}" is unused.'.format(option), file=sys.stderr)
+            print(f"Warning: {option=} is unused.", file=sys.stderr)
 
 
 def main():
@@ -193,6 +208,7 @@ def main():
 
     random.seed(args.seed)
     root = ast.parse(args.infile.read())
+    args.infile.close()
 
     # Choose renamings
     preprocess = Preprocess()
@@ -207,6 +223,7 @@ def main():
     ast.fix_missing_locations(root)  # fix AST
 
     print(ast.unparse(root), file=args.outfile)
+    args.outfile.close()
     if args.show_translations:
         for original, obfuscated in preprocess.mapping.items():
             print(original, "=", obfuscated)
