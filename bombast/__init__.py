@@ -64,7 +64,9 @@ class Bombast(ast.NodeTransformer):
         return Expr(self.visit(node.value))
 
     def visit_Constant(self, node):
-        if isinstance(node.value, (int, float)):
+        if isinstance(node.value, bool):
+            return Constant(value=node.value)
+        elif isinstance(node.value, (int, float)):
             return NumBombast(node).transform()
         elif isinstance(node.value, str):
             return StrBombast(node).transform()
