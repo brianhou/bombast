@@ -1,6 +1,7 @@
 import argparse
 import ast
 import builtins
+import functools
 import sys
 
 from bombast.transform import *
@@ -121,6 +122,18 @@ class Bombast(ast.NodeTransformer):
         body = [self.visit(b) for b in node.body]
         decorator_list = [self.visit(d) for d in node.decorator_list]
         return ClassDef(name, bases, node.keywords, body, decorator_list)
+
+    def visit_FormattedValue(self, node):
+        value = self.visit(node.value)
+        return FormattedValue(
+            value=value, conversion=node.conversion, format_spec=node.format_spec,
+        )
+
+    def visit_JoinedStr(self, node):
+        return functools.reduce(
+            lambda x, y: BinOp(left=x, right=y, op=Add()),
+            (self.visit(value) for value in node.values),
+        )
 
 def configure(path):
     options = load_config(path)

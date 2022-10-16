@@ -1,4 +1,4 @@
-from ast import Constant
+from ast import Constant, JoinedStr, FormattedValue
 from ast import Name, Load, Store, Del, Starred
 from ast import Expr, UnaryOp, UAdd, USub, Not, BinOp
 from ast import Add, Sub, Mult, Div, FloorDiv, Mod, Pow

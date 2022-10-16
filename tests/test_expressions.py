@@ -56,3 +56,13 @@ args[::-1]
 (y+1 for y in args)
 {y: y+1 for y in args}
 [x+y for x in args for y in args]
+
+# f-strings
+f'Empty f-string'
+f'Here is x: {x}!'
+f'Here is repr(x): {x!r}!'
+f'Here is x plus two: {x + 2}!'
+f'Three plus two is {3 + 2}'
+f'Some fancily formatted number: ${126783.6457:,.2f}'
+f'Here is x and z: {x}, {z}'
+f'Here is {x=} and {z=}'
