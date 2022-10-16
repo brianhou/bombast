@@ -1,4 +1,4 @@
-from ast import Constant, JoinedStr, FormattedValue
+from ast import Constant, List, JoinedStr, FormattedValue
 from ast import Name, Load, Store, Del, Starred
 from ast import Expr, UnaryOp, UAdd, USub, Not, BinOp
 from ast import Add, Sub, Mult, Div, FloorDiv, Mod, Pow
@@ -28,7 +28,7 @@ from ast import With  # withitem
 from ast import FunctionDef, Lambda, arguments, arg, Return, Yield, Global, Nonlocal
 from ast import ClassDef
 
-from bombast.utils import *
+import random
 
 
 class Transformation(object):

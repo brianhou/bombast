@@ -2,9 +2,10 @@ import argparse
 import ast
 import builtins
 import functools
+import random
 import sys
 
-from bombast.transform import *
+from bombast import transform, utils
 
 
 class Preprocess(ast.NodeVisitor):
@@ -20,9 +21,9 @@ class Preprocess(ast.NodeVisitor):
             return
         elif input in self.imports:
             return
-        new_name = random.randident(4, 10)
+        new_name = utils.randident(4, 10)
         while new_name in self.mapping.values():
-            new_name = random.randident(4, 10)
+            new_name = utils.randident(4, 10)
         self.mapping[input] = new_name
 
     def visit_Name(self, node):
@@ -57,43 +58,43 @@ class Bombast(ast.NodeTransformer):
         return self.mapping.get(input, input)
 
     def visit_Expr(self, node):
-        if isinstance(node.value, Constant) and isinstance(
+        if isinstance(node.value, ast.Constant) and isinstance(
             node.value.value, str
         ):  # docstring
-            return Expr(Constant(value=random.randident(20, 30)))
-        return Expr(self.visit(node.value))
+            return ast.Expr(ast.Constant(value=utils.randident(20, 30)))
+        return ast.Expr(self.visit(node.value))
 
     def visit_Constant(self, node):
         if isinstance(node.value, bool):
-            return Constant(value=node.value)
+            return ast.Constant(value=node.value)
         elif isinstance(node.value, (int, float)):
-            return NumBombast(node).transform()
+            return transform.NumBombast(node).transform()
         elif isinstance(node.value, str):
-            return StrBombast(node).transform()
-        return Constant(value=node.value)
+            return transform.StrBombast(node).transform()
+        return ast.Constant(value=node.value)
 
     def visit_Name(self, node):
-        return Name(id=self.rename(node.id), ctx=node.ctx)
+        return ast.Name(id=self.rename(node.id), ctx=node.ctx)
 
     def visit_Attribute(self, node):
-        if isinstance(node.value, Name) and node.value.id in self.imports:
+        if isinstance(node.value, ast.Name) and node.value.id in self.imports:
             attr = node.attr
         else:
             attr = self.rename(node.attr)
-        return Attribute(value=self.visit(node.value), attr=attr, ctx=node.ctx)
+        return ast.Attribute(value=self.visit(node.value), attr=attr, ctx=node.ctx)
 
     def visit_ExceptHandler(self, node):
-        return ExceptHandler(
+        return ast.ExceptHandler(
             type=node.type if node.type is None else self.visit(node.type),
             name=self.rename(node.name),
             body=[self.visit(b) for b in node.body],
         )
 
     def visit_arg(self, node):
-        return arg(arg=self.rename(node.arg), annotation=node.annotation)
+        return ast.arg(arg=self.rename(node.arg), annotation=node.annotation)
 
     def visit_keyword(self, node):
-        return keyword(arg=self.rename(node.arg), value=self.visit(node.value))
+        return ast.keyword(arg=self.rename(node.arg), value=self.visit(node.value))
 
     def visit_arguments(self, node):
         args = [self.visit(arg) for arg in node.args]
@@ -102,11 +103,11 @@ class Bombast(ast.NodeTransformer):
         posonlyargs = [self.visit(posonlyarg) for posonlyarg in node.posonlyargs]
         vararg = kwarg = None
         if node.vararg is not None:
-            vararg = arg(
+            vararg = ast.arg(
                 arg=self.rename(node.vararg.arg), annotation=node.vararg.annotation
             )
         if node.kwarg is not None:
-            kwarg = arg(
+            kwarg = ast.arg(
                 arg=self.rename(node.kwarg.arg), annotation=node.kwarg.annotation
             )
         as_kwargs = dict(
@@ -118,34 +119,31 @@ class Bombast(ast.NodeTransformer):
             kwarg=kwarg,
             defaults=defaults,
         )
-        for key in list(as_kwargs.keys()):
-            if key not in arguments._fields:
-                del as_kwargs[key]
-        return arguments(**as_kwargs)
+        return ast.arguments(**as_kwargs)
 
     def visit_FunctionDef(self, node):
         name = self.rename(node.name)
         args = self.visit(node.args)
         body = [self.visit(b) for b in node.body]
         decorator_list = [self.visit(d) for d in node.decorator_list]
-        return FunctionDef(name, args, body, decorator_list, node.returns)
+        return ast.FunctionDef(name, args, body, decorator_list, node.returns)
 
     def visit_Global(self, node):
-        return Global([self.rename(n) for n in node.names])
+        return ast.Global([self.rename(n) for n in node.names])
 
     def visit_Nonlocal(self, node):
-        return Nonlocal([self.rename(n) for n in node.names])
+        return ast.Nonlocal([self.rename(n) for n in node.names])
 
     def visit_ClassDef(self, node):
         name = self.rename(node.name)
         bases = [self.visit(b) for b in node.bases]
         body = [self.visit(b) for b in node.body]
         decorator_list = [self.visit(d) for d in node.decorator_list]
-        return ClassDef(name, bases, node.keywords, body, decorator_list)
+        return ast.ClassDef(name, bases, node.keywords, body, decorator_list)
 
     def visit_FormattedValue(self, node):
         value = self.visit(node.value)
-        return FormattedValue(
+        return ast.FormattedValue(
             value=value,
             conversion=node.conversion,
             format_spec=node.format_spec,
@@ -153,13 +151,13 @@ class Bombast(ast.NodeTransformer):
 
     def visit_JoinedStr(self, node):
         return functools.reduce(
-            lambda x, y: BinOp(left=x, right=y, op=Add()),
+            lambda x, y: ast.BinOp(left=x, right=y, op=ast.Add()),
             (self.visit(value) for value in node.values),
         )
 
 
 def configure(path):
-    options = load_config(path)
+    options = utils.load_config(path)
     for option, value in options.items():
         if option == "ignore_names":
             user_ignores = set(value)
