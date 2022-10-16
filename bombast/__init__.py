@@ -1,6 +1,7 @@
 import argparse
 import ast
 import builtins
+import functools
 import sys
 
 from bombast.transform import *
@@ -122,26 +123,17 @@ class Bombast(ast.NodeTransformer):
         decorator_list = [self.visit(d) for d in node.decorator_list]
         return ClassDef(name, bases, node.keywords, body, decorator_list)
 
-    def visit_JoinedStr(self, node):
-        new_node = None
-        for value in node.values:
-            if type(value) == Constant:
-                value = self.visit(value)
-            elif type(value) == FormattedValue:
-                value.value = self.visit(value.value)
-                value = JoinedStr(values=[value])
-            else:
-                raise RuntimeError('Invalid node in JoinedStr')
+    def visit_FormattedValue(self, node):
+        value = self.visit(node.value)
+        return FormattedValue(
+            value=value, conversion=node.conversion, format_spec=node.format_spec,
+        )
 
-            if new_node is None:
-                new_node = value
-            else:
-                new_node = BinOp(
-                    left=new_node,
-                    right=value,
-                    op=Add()
-                )
-        return new_node
+    def visit_JoinedStr(self, node):
+        return functools.reduce(
+            lambda x, y: BinOp(left=x, right=y, op=Add()),
+            (self.visit(value) for value in node.values),
+        )
 
 def configure(path):
     options = load_config(path)
