@@ -1,6 +1,5 @@
 import argparse
 import ast
-import astunparse
 import builtins
 import sys
 
@@ -55,15 +54,16 @@ class Bombast(ast.NodeTransformer):
         return self.mapping.get(input, input)
 
     def visit_Expr(self, node):
-        if isinstance(node.value, Str): # docstring
-            return Expr(Str(s=random.randident(20, 30), **DEFAULT_CONSTANT_KWARGS))
+        if isinstance(node.value, Constant) and isinstance(node.value.value, str): # docstring
+            return Expr(Constant(value=random.randident(20, 30)))
         return Expr(self.visit(node.value))
 
-    def visit_Num(self, node):
-        return NumBombast(node).transform()
-
-    def visit_Str(self, node):
-        return StrBombast(node).transform()
+    def visit_Constant(self, node):
+        if isinstance(node.value, (int, float)):
+            return NumBombast(node).transform()
+        elif isinstance(node.value, str):
+            return StrBombast(node).transform()
+        return Constant(value=node.value)
 
     def visit_Name(self, node):
         return Name(id=self.rename(node.id), ctx=node.ctx)
@@ -90,20 +90,13 @@ class Bombast(ast.NodeTransformer):
         args = [self.visit(arg) for arg in node.args]
         kwonlyargs = [self.visit(arg) for arg in node.kwonlyargs]
         defaults, kw_defaults = node.defaults, node.kw_defaults
-        if VERSION[:2] < (3, 4):
-            vararg = self.rename(node.vararg)
-            kwarg = self.rename(node.kwarg)
-            as_kwargs = dict(args=args, vararg=vararg, varargannotation=node.varargannotation,
-                             kwonlyargs=kwonlyargs, kwarg=kwarg, kwargannotation=node.kwargannotation,
-                             defaults=defaults, kw_defaults=kw_defaults)
-        else:
-            posonlyargs = [self.visit(posonlyarg) for posonlyarg in node.posonlyargs] if VERSION[:2] >= (3, 8) else []
-            vararg = kwarg = None
-            if node.vararg is not None:
-                vararg = arg(arg=self.rename(node.vararg.arg), annotation=node.vararg.annotation)
-            if node.kwarg is not None:
-                kwarg = arg(arg=self.rename(node.kwarg.arg), annotation=node.kwarg.annotation)
-            as_kwargs = dict(posonlyargs=posonlyargs, args=args, vararg=vararg, kwonlyargs=kwonlyargs, kw_defaults=kw_defaults, kwarg=kwarg, defaults=defaults)
+        posonlyargs = [self.visit(posonlyarg) for posonlyarg in node.posonlyargs]
+        vararg = kwarg = None
+        if node.vararg is not None:
+            vararg = arg(arg=self.rename(node.vararg.arg), annotation=node.vararg.annotation)
+        if node.kwarg is not None:
+            kwarg = arg(arg=self.rename(node.kwarg.arg), annotation=node.kwarg.annotation)
+        as_kwargs = dict(posonlyargs=posonlyargs, args=args, vararg=vararg, kwonlyargs=kwonlyargs, kw_defaults=kw_defaults, kwarg=kwarg, defaults=defaults)
         for key in list(as_kwargs.keys()):
             if key not in arguments._fields:
                 del as_kwargs[key]
@@ -127,13 +120,7 @@ class Bombast(ast.NodeTransformer):
         bases = [self.visit(b) for b in node.bases]
         body = [self.visit(b) for b in node.body]
         decorator_list = [self.visit(d) for d in node.decorator_list]
-        if VERSION[:2] < (3, 5):
-            return ClassDef(name, bases,
-                            node.keywords, node.starargs, node.kwargs,
-                            body, decorator_list)
-        else:
-            return ClassDef(name, bases,
-                            node.keywords, body, decorator_list)
+        return ClassDef(name, bases, node.keywords, body, decorator_list)
 
     def visit_JoinedStr(self, node):
         new_node = None
@@ -200,7 +187,7 @@ def main():
     root.body.sort(key=lambda x: not isinstance(x, ast.Import)) # move imports
     ast.fix_missing_locations(root) # fix AST
 
-    print(astunparse.unparse(root), file=args.outfile)
+    print(ast.unparse(root), file=args.outfile)
     if args.show_translations:
         for original, obfuscated in preprocess.mapping.items():
             print(original, '=', obfuscated)
