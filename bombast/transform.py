@@ -58,7 +58,7 @@ class StrBombast(PrimitiveBombast):
 
     def one_Ordinal(node): # 'a' -> chr(97)
         return Call(func=Name(id='chr', ctx=Load()),
-                    args=[Num(ord(node.s), kind=None)], keywords=[], starargs=None, kwargs=None)
+                    args=[Num(ord(node.s))], keywords=[], starargs=None, kwargs=None)
     def one_Identity(node): # 'a' -> 'a'
         return node
     one = Transformation(one_Ordinal, one_Identity)
@@ -67,8 +67,8 @@ class StrBombast(PrimitiveBombast):
         s = node.s
         i = random.randrange(len(s))
         return BinOp(
-            left=Str(s=s[:i], kind=None),
-            right=Str(s=s[i:], kind=None),
+            left=Str(s=s[:i]),
+            right=Str(s=s[i:]),
             op=Add()
         )
     many = Transformation(many_Split)
@@ -87,7 +87,7 @@ class NumBombast(PrimitiveBombast):
     def zero_Multiplier(node): # 0 -> int(n * 0)
         return Call(
             func=Name(id='int', ctx=Load()),
-            args=[BinOp(left=Num(n=random.random(), kind=None), right=Num(n=0, kind=None), op=Mult())],
+            args=[BinOp(left=Num(n=random.random()), right=Num(n=0), op=Mult())],
             keywords=[], starargs=None, kwargs=None
         )
     def zero_Identity(node):
@@ -97,8 +97,8 @@ class NumBombast(PrimitiveBombast):
     def int_Split(node, range=100): # n -> (n-s) + (s)
         s = random.randint(-range, range)
         return BinOp(
-            left=Num(n=node.n-s, kind=None),
-            right=Num(n=s, kind=None),
+            left=Num(n=node.n-s),
+            right=Num(n=s),
             op=Add()
         )
     int = Transformation(int_Split)
@@ -106,8 +106,8 @@ class NumBombast(PrimitiveBombast):
     def float_Split(node): # n -> (n-s) + (s)
         s = random.random()
         return BinOp(
-            left=Num(n=node.n-s, kind=None),
-            right=Num(n=s, kind=None),
+            left=Num(n=node.n-s),
+            right=Num(n=s),
             op=Add()
         )
     float = Transformation(float_Split)
@@ -120,13 +120,13 @@ class ImportBombast(RenameBombast):
             targets=[Name(id=n.names[0].name, ctx=Store())],
             value=Call(func=Name(id='__import__', ctx=Load()),
                        args=[
-                           Str(s=n.names[0].name, kind=None),
+                           Str(s=n.names[0].name),
                            Call(func=Name(id='globals', ctx=Load()),
                                 args=[], keywords=[], starargs=None, kwargs=None),
                            Call(func=Name(id='locals', ctx=Load()),
                                 args=[], keywords=[], starargs=None, kwargs=None),
                            List(elts=[], ctx=Load()),
-                           Num(n=0, kind=None)
+                           Num(n=0)
                        ],
                        keywords=[], starargs=None, kwargs=None))
         )
