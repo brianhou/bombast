@@ -4,7 +4,7 @@ import functools
 import random
 import string
 
-from bombast import transform
+from bombast import transforms
 
 
 FIRST_CHAR = string.ascii_uppercase + string.ascii_lowercase
@@ -94,9 +94,9 @@ class Bombast(ast.NodeTransformer):
         if isinstance(node.value, bool):
             return ast.Constant(value=node.value)
         elif isinstance(node.value, (int, float)):
-            return transform.NumBombast(node).transform()
+            return transforms.NumBombast(node).transform()
         elif isinstance(node.value, str):
-            return transform.StrBombast(node).transform()
+            return transforms.StrBombast(node).transform()
         return ast.Constant(value=node.value)
 
     def visit_Name(self, node):
