@@ -56,7 +56,7 @@ class Bombast(ast.NodeTransformer):
 
     def visit_Expr(self, node):
         if isinstance(node.value, Str): # docstring
-            return Expr(Str(s=random.randident(20, 30), **DEFAULT_CONSTANT_KWARGS))
+            return Expr(Str(s=random.randident(20, 30), kind=None))
         return Expr(self.visit(node.value))
 
     def visit_Num(self, node):
