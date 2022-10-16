@@ -1,6 +1,5 @@
 import argparse
 import ast
-import astunparse
 import builtins
 import sys
 
@@ -166,7 +165,7 @@ def main():
     root.body.sort(key=lambda x: not isinstance(x, ast.Import)) # move imports
     ast.fix_missing_locations(root) # fix AST
 
-    print(astunparse.unparse(root), file=args.outfile)
+    print(ast.unparse(root), file=args.outfile)
     if args.show_translations:
         for original, obfuscated in preprocess.mapping.items():
             print(original, '=', obfuscated)
