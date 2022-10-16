@@ -7,8 +7,7 @@ setup(
     url="https://github.com/brianhou/bombast",
     author="Brian Hou",
     packages=["bombast"],
-    install_requires=["astunparse>=1.6.3"],
-    python_requires="~=3.8",
+    python_requires="~=3.9",
     entry_points={
         "console_scripts": [
             "bombast=bombast.__init__:main",
