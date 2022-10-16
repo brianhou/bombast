@@ -16,15 +16,15 @@ class Preprocess(ast.NodeVisitor):
         self.mapping = {}
         self.imports = set()
 
-    def rename(self, input):
-        if input in self.ignores:
+    def rename(self, name):
+        if name in self.imports:
             return
-        elif input in self.imports:
+        if name in self.ignores or name in self.mapping:
             return
         new_name = utils.randident(4, 10)
         while new_name in self.mapping.values():
             new_name = utils.randident(4, 10)
-        self.mapping[input] = new_name
+        self.mapping[name] = new_name
 
     def visit_Name(self, node):
         self.rename(node.id)
@@ -54,8 +54,8 @@ class Bombast(ast.NodeTransformer):
         self.mapping = preprocess.mapping
         self.imports = preprocess.imports
 
-    def rename(self, input):
-        return self.mapping.get(input, input)
+    def rename(self, name):
+        return self.mapping.get(name, name)
 
     def visit_Expr(self, node):
         if isinstance(node.value, ast.Constant) and isinstance(
