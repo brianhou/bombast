@@ -24,25 +24,30 @@ def load_config(path, default="bombast.config"):
         if path != default:
             raise
     except ValueError as e:
-        print("Error:", path, "is an invalid configuration file", file=sys.stderr)
+        print(f"Error: {path} is an invalid configuration file", file=sys.stderr)
         exit(1)
     return {}
 
 
 def configure(path):
-    options = load_config(path)
-    for option, value in options.items():
-        if option == "ignore_names":
-            user_ignores = set(value)
-            Preprocess.ignores |= user_ignores
-        else:
+    known_options = {"ignore_names"}
+    listed_options = load_config(path)
+    configured = {}
+    for option, value in listed_options.items():
+        if option not in known_options:
             print(f"Warning: {option=} is unused.", file=sys.stderr)
+            continue
+        configured[option] = value
+    return configured
 
 
 def main():
     parser = argparse.ArgumentParser(description="Obfuscate Python source code.")
     parser.add_argument(
-        "infile", type=argparse.FileType("rb"), default=sys.stdin, help="input"
+        "infile",
+        type=argparse.FileType("r"),
+        default=sys.stdin,
+        help="input",
     )
     parser.add_argument(
         "outfile",
@@ -62,26 +67,28 @@ def main():
         "--show-translations", action="store_true", help="print translations to stdout"
     )
     args = parser.parse_args()
-    configure(args.config)
+    options = configure(args.config)
 
     random.seed(args.seed)
     root = ast.parse(args.infile.read())
     args.infile.close()
 
     # Choose renamings
-    preprocess = visitors.Preprocess()
+    preprocess = visitors.Preprocess(**options)
     preprocess.visit(root)
 
-    bombast = visitors.Bombast(preprocess)
+    # Apply transformations
+    bombast = visitors.Bombast(preprocess, **options)
     for _ in range(args.iters):
         root = bombast.visit(root)
 
-    # Postprocessing
-    root.body.sort(key=lambda x: not isinstance(x, ast.Import))  # move imports
-    ast.fix_missing_locations(root)  # fix AST
+    # Postprocessing: move imports and fix AST
+    root.body.sort(key=lambda x: not isinstance(x, ast.Import))
+    ast.fix_missing_locations(root)
 
     print(ast.unparse(root), file=args.outfile)
     args.outfile.close()
+
     if args.show_translations:
         for original, obfuscated in preprocess.mapping.items():
             print(original, "=", obfuscated)
