@@ -100,9 +100,9 @@ class Bombast(ast.NodeTransformer):
         if isinstance(node.value, bool):
             return ast.Constant(value=node.value)
         elif isinstance(node.value, (int, float)):
-            return transforms.NumBombast(node).transform()
+            return transforms.NumTransform(node)
         elif isinstance(node.value, str):
-            return transforms.StrBombast(node).transform()
+            return transforms.StrTransform(node)
         return ast.Constant(value=node.value)
 
     def visit_FormattedValue(self, node: ast.FormattedValue):
