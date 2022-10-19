@@ -1,4 +1,4 @@
-# bombast [![Build Status](https://github.com/brianhou/bombast/workflows/tests/badge.svg)](https://github.com/brianhou/bombast/actions/workflows/tests.yml) [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/release/python-390/)
+# bombast [![Build Status](https://github.com/brianhou/bombast/workflows/tests/badge.svg)](https://github.com/brianhou/bombast/actions/workflows/tests.yml) ![PyPI](https://img.shields.io/pypi/v/bombast?color=blue) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/bombast?color=blue)
 
 An obfuscator for Python 3 source code that manipulates the AST.
 
