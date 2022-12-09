@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="bombast",
-    version="v0.3.0",
+    version="v1.0.0",
     description="An obfuscator for Python 3 source code that manipulates the AST.",
     url="https://github.com/brianhou/bombast",
     author="Brian Hou",
